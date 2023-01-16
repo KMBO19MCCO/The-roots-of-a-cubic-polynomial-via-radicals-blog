@@ -1,4 +1,5 @@
 ﻿#define _USE_MATH_DEFINES
+#define PRINT true
 
 #include <iostream>
 #include <iomanip>
@@ -8,8 +9,6 @@
 #include <complex>
 #include <utility>
 #include "except.h"
-
-#define PRINT true
 
 typedef float fp_t;
 
@@ -24,7 +23,7 @@ inline bool isZero(const fp_t& x)
 }
 
 template<typename fp_t>
-inline fp_t fms(fp_t a, fp_t b, fp_t c, fp_t d)
+inline fp_t fms(fp_t a, fp_t b, fp_t c, fp_t d) 
 {
     fp_t cd = -c * d;
 
@@ -40,14 +39,16 @@ inline int sgn(fp_t x)
 template<typename fp_t>
 vector<complex<fp_t>> cubeRoot(const complex<fp_t>& z)
 {
-    const long double r = abs(z);
-    const long double phi = arg(z);
+    fp_t r = abs(z);
+    fp_t phi = arg(z);
+
+    fp_t three = 3.L;
 
     return
     {
-        complex<fp_t>(polar(cbrt(r), phi / 3L)),
-        complex<fp_t>(polar(cbrt(r), fma(2L, static_cast<fp_t>(M_PI), phi) / 3L)),
-        complex<fp_t>(polar(cbrt(r), fma(4L, static_cast<fp_t>(M_PI), phi) / 3L))
+        complex<fp_t>(polar(cbrt(r), phi / three)),
+        complex<fp_t>(polar(cbrt(r), fma(static_cast<fp_t>(2.L), static_cast<fp_t>(M_PI), phi) / three)),
+        complex<fp_t>(polar(cbrt(r), fma(static_cast<fp_t>(4.L), static_cast<fp_t>(M_PI), phi) / three)) // *исправлено
     };
 }
 
@@ -83,24 +84,32 @@ complex<fp_t> cubicPolynomial(complex<fp_t> a, complex<fp_t> b, complex<fp_t> c,
 template<typename fp_t>
 vector<complex<fp_t>> rootSearch(complex<fp_t> a, complex<fp_t> b, complex<fp_t> c, complex<fp_t> d, vector<complex<fp_t>>& probRoots)
 {
+    // подставляем полученные корни в исходное уравнение
+    complex<fp_t> checkC = cubicPolynomial(a, b, c, d, probRoots[0]);
+    complex<fp_t> checkC_ = cubicPolynomial(a, b, c, d, probRoots[3]);
+
     vector<complex<fp_t>> roots(3);
 
-    // Подставляем полученные корни в исходное уравнение
-    vector<pair<complex<fp_t>, complex<fp_t>>> temp =
-    {
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[0]), probRoots[0]),
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[1]), probRoots[1]),
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[2]), probRoots[2]),
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[3]), probRoots[3]),
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[4]), probRoots[4]),
-        pair<complex<fp_t>, complex<fp_t>>(cubicPolynomial(a, b, c, d, probRoots[5]), probRoots[5])
-    };
+    vector<pair<complex<fp_t>, complex<fp_t>>> temp(6);
 
-    // Сортируем и отбираем корни, которые при подстановке в уравнение дают наименьшее число
-    sort(temp.begin(), temp.end(), [](const pair<complex<fp_t>, complex<fp_t>>& left, const pair<complex<fp_t>, complex<fp_t>>& right)
+    int count = 0;
+
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (!isnan(probRoots[i].real()))
         {
-            return abs(left.first) < abs(right.first);
-        });
+            temp[count] = pair<complex<fp_t>, complex<fp_t>>(epsilonC(cubicPolynomial(a, b, c, d, probRoots[i])), probRoots[i]);
+            ++count;
+        }
+    }
+
+    if (count == 6)
+    {
+        sort(temp.begin(), temp.end(), [](const pair<complex<fp_t>, complex<fp_t>>& left, const pair<complex<fp_t>, complex<fp_t>>& right)
+            {
+                return abs(left.first) < abs(right.first);
+            });
+    }
 
     roots =
     {
@@ -125,29 +134,25 @@ unsigned int solveCubic(fp_t a, fp_t b, fp_t c, fp_t d, vector<fp_t>& roots)
     if (isinf(d /= a))
         return 0;
     a = 1;
-
     // числовые константы
     const fp_t ONE_THIRD = static_cast<fp_t>(1.0L / 3.0L);
     const fp_t ONE_TWENTY_SEVEN = static_cast<fp_t>(1.0L / 27.0L);
 
-    const complex<fp_t> ONE_HALF_C(0.5, 0);
-    const complex<fp_t> ONE_THIRD_C(static_cast<fp_t>(1.0L / 3.0L), 0);
+    complex<fp_t> ONE_HALF_C(0.5L, 0);
+    complex<fp_t> ONE_THIRD_C(ONE_THIRD, 0);
 
     // коэффициенты полинома в комплексной обертке
-    const complex<fp_t> A_C(a, 0);
-    const complex<fp_t> B_C(b, 0);
-    const complex<fp_t> C_C(c, 0);
-    const complex<fp_t> D_C(d, 0);
+    complex<fp_t> A_C(1, 0);
+    complex<fp_t> B_C(b, 0);
+    complex<fp_t> C_C(c, 0);
+    complex<fp_t> D_C(d, 0);
 
     // кол-во вещественных корней
     unsigned numOfRoots = 0;
 
     // расчетные коэффициенты
-    fp_t A = fma(-b * ONE_THIRD, b, c);
-    fp_t B = fma(b, fms(static_cast<fp_t>(2) * ONE_TWENTY_SEVEN, b * b, b * ONE_THIRD, c), d);
-    
     complex<fp_t> C1 = fms(static_cast<fp_t>(3), c, b, b);
-    complex<fp_t> C2 = fms(b, fms(static_cast<fp_t>(2) * b, b, static_cast<fp_t>(9), c), -static_cast<fp_t>(27), d);
+    complex<fp_t> C2 = fms(b, fms(static_cast<fp_t>(2) * b, b, static_cast<fp_t>(9), c), static_cast<fp_t>(-27), d);
  
     complex<fp_t> CCC = fmsc(ONE_HALF_C, sqrt(fmsc(static_cast<fp_t>(4) * C1 * C1, C1, -C2, C2)), ONE_HALF_C, C2);
     complex<fp_t> CCC_ = fmsc(ONE_HALF_C, sqrt(fmsc(static_cast<fp_t>(4) * C1 * C1, C1, -C2, C2)), -ONE_HALF_C, C2);
@@ -246,15 +251,5 @@ void testCubicAdv(const int testCount, const fp_t dist)
 
 int main()
 {
-    vector<float> r(3);
-    int num = solveCubic(-121.F, 76.F, -6.F, -1.F, r);
-    cout << "RESULT\n\n"
-        << r[0] << "\n"
-        << r[1] << "\n"
-        << r[2] << "\n"
-        << "ROOTS: " << num;
-
     testCubicAdv(1000000, static_cast<fp_t>(1e-05));
 }
-
-
