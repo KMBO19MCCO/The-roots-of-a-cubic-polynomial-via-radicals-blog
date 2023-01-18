@@ -8,6 +8,7 @@
 #include <limits>
 #include <complex>
 #include <utility>
+#include <algorithm>
 #include "except.h"
 
 typedef float fp_t;
@@ -23,7 +24,7 @@ inline bool isZero(const fp_t& x)
 }
 
 template<typename fp_t>
-inline fp_t fms(fp_t a, fp_t b, fp_t c, fp_t d) 
+inline fp_t fms(fp_t a, fp_t b, fp_t c, fp_t d)
 {
     fp_t cd = -c * d;
 
@@ -153,7 +154,7 @@ unsigned int solveCubic(fp_t a, fp_t b, fp_t c, fp_t d, vector<fp_t>& roots)
     // расчетные коэффициенты
     complex<fp_t> C1 = fms(static_cast<fp_t>(3), c, b, b);
     complex<fp_t> C2 = fms(b, fms(static_cast<fp_t>(2) * b, b, static_cast<fp_t>(9), c), static_cast<fp_t>(-27), d);
- 
+
     complex<fp_t> CCC = fmsc(ONE_HALF_C, sqrt(fmsc(static_cast<fp_t>(4) * C1 * C1, C1, -C2, C2)), ONE_HALF_C, C2);
     complex<fp_t> CCC_ = fmsc(ONE_HALF_C, sqrt(fmsc(static_cast<fp_t>(4) * C1 * C1, C1, -C2, C2)), -ONE_HALF_C, C2);
 
@@ -161,7 +162,7 @@ unsigned int solveCubic(fp_t a, fp_t b, fp_t c, fp_t d, vector<fp_t>& roots)
     vector<complex<fp_t>> C_ = cubeRoot(CCC_);
 
     // возможные корни уравнение, которые следует уточнить
-    vector<complex<fp_t>> probRoots(6); 
+    vector<complex<fp_t>> probRoots(6);
     probRoots =
     {
         fmac(ONE_THIRD_C, -C1 / C[0], fmsc(ONE_THIRD_C, C[0], ONE_THIRD_C, B_C)),
@@ -252,4 +253,7 @@ void testCubicAdv(const int testCount, const fp_t dist)
 int main()
 {
     testCubicAdv(1000000, static_cast<fp_t>(1e-05));
+
+    system("pause");
+    return 0;
 }
