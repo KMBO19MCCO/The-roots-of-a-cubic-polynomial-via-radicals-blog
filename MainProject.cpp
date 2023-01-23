@@ -15,7 +15,7 @@ typedef float fp_t;
 
 using namespace std;
 
-// ================================================================== //
+//================================================================== //
 
 template<typename fp_t>
 inline bool isZero(const fp_t& x)
@@ -49,7 +49,7 @@ vector<complex<fp_t>> cubeRoot(const complex<fp_t>& z)
     {
         complex<fp_t>(polar(cbrt(r), phi / three)),
         complex<fp_t>(polar(cbrt(r), fma(static_cast<fp_t>(2.L), static_cast<fp_t>(M_PI), phi) / three)),
-        complex<fp_t>(polar(cbrt(r), fma(static_cast<fp_t>(4.L), static_cast<fp_t>(M_PI), phi) / three)) // *исправлено
+        complex<fp_t>(polar(cbrt(r), fma(static_cast<fp_t>(4.L), static_cast<fp_t>(M_PI), phi) / three))
     };
 }
 
@@ -90,7 +90,6 @@ vector<complex<fp_t>> rootSearch(complex<fp_t> a, complex<fp_t> b, complex<fp_t>
     complex<fp_t> checkC_ = cubicPolynomial(a, b, c, d, probRoots[3]);
 
     vector<complex<fp_t>> roots(3);
-
     vector<pair<complex<fp_t>, complex<fp_t>>> temp(6);
 
     int count = 0;
@@ -122,8 +121,12 @@ vector<complex<fp_t>> rootSearch(complex<fp_t> a, complex<fp_t> b, complex<fp_t>
     return roots;
 }
 
-// ================================================================== //
-
+/*==============================================================================================================*/
+/*
+    Имплементация метода решения кубического уравнения — "The roots of a cubic polynomial via radicals-blog"
+    Информация о методе — https://gandhiviswanathan.wordpress.com/
+    Работу выполнил — Ишанов Азизхон (https://github.com/ZeekFeed07)
+*/
 template<typename fp_t>
 unsigned int solveCubic(fp_t a, fp_t b, fp_t c, fp_t d, vector<fp_t>& roots)
 {
@@ -201,9 +204,9 @@ unsigned int solveCubic(fp_t a, fp_t b, fp_t c, fp_t d, vector<fp_t>& roots)
 template <typename fp_t>
 void testCubicAdv(const int testCount, const fp_t dist)
 {
-    int P = 3; // power, total number of tests
-    fp_t low = -1, high = 1; // [low, high], max distance between clustered roots
-    fp_t absMaxError, relMaxError; // variables for each test Errors
+    int P = 3;                                       // power, total number of tests
+    fp_t low = -1, high = 1;                         // [low, high], max distance between clustered roots
+    fp_t absMaxError, relMaxError;                   // variables for each test Errors
     int numOfFoundRoots, cantFind = 0;
     fp_t maxAbsAllofTest = -1, maxRelAllofTest = -1; // maximum from maxAbsoluteError and maxRelError from all [testCount] tests
 
@@ -243,9 +246,9 @@ void testCubicAdv(const int testCount, const fp_t dist)
         cout << "Total count of tests: " << testCount << endl;
         cout << "Couldn't find roots: " << cantFind << " times " << endl;
         cout << "Mean absMaxError = " << absErrors / (testCount - cantFind) << endl;
-        cout << "Max {absMaxError_i | i = 0, ..., 1e6} from all of the tests: " << maxAbsAllofTest << endl;
+        cout << "Max {absMaxError_i | i = 0, ..., " << testCount << "} from all of the tests : " << maxAbsAllofTest << endl;
         cout << "Mean RelMaxError = " << relError / (testCount - cantFind) << endl;
-        cout << "Max {RelMaxError_i | i = 0, ..., 1e6} all of the tests: " << maxRelAllofTest << endl;
+        cout << "Max {RelMaxError_i | i = 0, ..., " << testCount << "} all of the tests : " << maxRelAllofTest << endl;
         cout << "RelMaxError > 1: " << count << " times" << endl;
     }
 }
